@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, X, Phone, MapPin, Coffee, Leaf, Users, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 import { useCartStore } from '../store/cartStore';
+import { supabase } from '@/lib/supabase';
 
 // Types based on what we map from Sanity
 export interface SanityProduct {
@@ -37,9 +38,28 @@ export default function HomeClient({ categories, products }: HomeClientProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   // Modal State for Product
   const [selectedProduct, setSelectedProduct] = useState<SanityProduct | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [customerName, setCustomerName] = useState('');
+  const [customerWa, setCustomerWa] = useState('');
+  const [email, setEmail] = useState('');
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   const cart = useCartStore();
 
@@ -75,6 +95,63 @@ export default function HomeClient({ categories, products }: HomeClientProps) {
     }
   };
 
+  const handleCheckout = async () => {
+    if (cart.items.length === 0) return;
+    if (!customerName || !customerWa) {
+      alert('Silakan isi Nama dan Nomor WhatsApp Anda.');
+      return;
+    }
+    
+    const { error } = await supabase
+      .from('orders')
+      .insert([
+        { 
+          items: cart.items, 
+          total_price: cart.getTotalPrice(),
+          customer_name: customerName,
+          customer_wa: customerWa,
+          status: 'pending'
+        }
+      ]);
+      
+    if (error) {
+      alert('Gagal membuat pesanan: ' + error.message);
+    } else {
+      alert('Pesanan berhasil dibuat!');
+      cart.clearCart();
+      setCustomerName('');
+      setCustomerWa('');
+      setIsCartOpen(false);
+    }
+  };
+
+  const handleMagicLinkLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: window.location.origin,
+      },
+    });
+    
+    if (error) {
+      alert('Gagal mengirim link: ' + error.message);
+    } else {
+      alert('Link login telah dikirim ke email Anda. Silakan cek inbox/spam.');
+      setIsLoginModalOpen(false);
+      setEmail('');
+    }
+  };
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      alert('Gagal logout: ' + error.message);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#0d0d0d] text-white font-sans">
       {/* NAVBAR */}
@@ -96,6 +173,25 @@ export default function HomeClient({ categories, products }: HomeClientProps) {
           </div>
 
           <div className="flex items-center gap-4">
+            {user ? (
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-white/60 hidden md:block">{user.email}</span>
+                <button 
+                  onClick={handleLogout}
+                  className="px-4 py-1.5 border border-white/20 text-white/80 hover:border-[#c59d5f] hover:text-[#c59d5f] transition-colors text-xs tracking-widest"
+                >
+                  LOGOUT
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setIsLoginModalOpen(true)}
+                className="px-4 py-1.5 border border-[#c59d5f] text-[#c59d5f] hover:bg-[#c59d5f] hover:text-black transition-colors text-xs tracking-widest"
+              >
+                LOGIN
+              </button>
+            )}
+
             <button 
               onClick={() => setIsCartOpen(true)}
               className="relative p-2 text-white/80 hover:text-[#c59d5f] transition-colors"
@@ -430,11 +526,30 @@ export default function HomeClient({ categories, products }: HomeClientProps) {
 
               {cart.items.length > 0 && (
                 <div className="p-6 border-t border-white/10 bg-[#111]">
+                  <div className="mb-4 space-y-3">
+                    <input 
+                      type="text" 
+                      placeholder="Nama Lengkap" 
+                      className="w-full bg-[#1a1a1a] border border-white/10 p-3 text-sm focus:border-[#c59d5f] outline-none text-white rounded-sm"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="Nomor WhatsApp" 
+                      className="w-full bg-[#1a1a1a] border border-white/10 p-3 text-sm focus:border-[#c59d5f] outline-none text-white rounded-sm"
+                      value={customerWa}
+                      onChange={(e) => setCustomerWa(e.target.value)}
+                    />
+                  </div>
                   <div className="flex justify-between mb-6">
                     <span className="text-white/70 tracking-widest">SUBTOTAL</span>
                     <span className="text-xl font-bold text-[#c59d5f]">Rp {(cart.getTotalPrice() / 1000).toFixed(0)}.000</span>
                   </div>
-                  <button className="w-full bg-[#c59d5f] hover:bg-[#e0b472] text-black font-bold tracking-widest py-4 transition-colors">
+                  <button 
+                    onClick={handleCheckout}
+                    className="w-full bg-[#c59d5f] hover:bg-[#e0b472] text-black font-bold tracking-widest py-4 transition-colors"
+                  >
                     CHECKOUT
                   </button>
                 </div>
@@ -517,6 +632,66 @@ export default function HomeClient({ categories, products }: HomeClientProps) {
                       <ShoppingBag className="w-5 h-5" /> ADD TO CART
                     </button>
                  </div>
+               </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* --- LOGIN MODAL --- */}
+      <AnimatePresence>
+        {isLoginModalOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsLoginModalOpen(false)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
+            >
+               <motion.div
+                 initial={{ scale: 0.95, opacity: 0 }}
+                 animate={{ scale: 1, opacity: 1 }}
+                 exit={{ scale: 0.95, opacity: 0 }}
+                 onClick={(e) => e.stopPropagation()}
+                 className="bg-[#111] border border-[#c59d5f]/30 max-w-md w-full relative p-8"
+               >
+                 <button 
+                   onClick={() => setIsLoginModalOpen(false)}
+                   className="absolute top-4 right-4 z-10 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white/70 hover:text-white"
+                 >
+                   <X className="w-5 h-5" />
+                 </button>
+
+                 <div className="text-center mb-8">
+                   <h2 className="text-2xl font-serif text-[#c59d5f] mb-2">Member Login</h2>
+                   <p className="text-white/60 text-sm">Masuk untuk mengumpulkan poin dan akses promo eksklusif.</p>
+                 </div>
+
+                 <form onSubmit={handleMagicLinkLogin} className="space-y-4">
+                    <div>
+                      <label className="text-xs text-white/50 tracking-widest block mb-2">EMAIL ADDRESS</label>
+                      <input 
+                        type="email" 
+                        placeholder="nama@email.com" 
+                        className="w-full bg-[#1a1a1a] border border-white/10 p-4 text-sm focus:border-[#c59d5f] outline-none text-white rounded-sm"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <button 
+                      type="submit"
+                      className="w-full bg-[#c59d5f] hover:bg-[#e0b472] text-black font-bold tracking-widest py-4 transition-colors flex justify-center items-center gap-2"
+                    >
+                      KIRIM LINK LOGIN
+                    </button>
+                 </form>
+
+                 <p className="text-center text-xs text-white/30 mt-6">
+                   Kami akan mengirimkan link login ke email Anda. Tanpa password.
+                 </p>
                </motion.div>
             </motion.div>
           </>
