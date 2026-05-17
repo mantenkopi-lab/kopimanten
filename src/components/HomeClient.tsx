@@ -20,12 +20,109 @@ export interface SanityProduct {
   }[];
 }
 
-interface HomeClientProps {
-  categories: string[];
-  products: SanityProduct[];
-}
+const HARDCODED_CATEGORIES = [
+  "Signature Coffee (Based Coffee)",
+  "Based Tea",
+  "Based Chocolate",
+  "Calon Manten",
+  "Food & Snack"
+];
 
-export default function HomeClient({ categories, products }: HomeClientProps) {
+const HARDCODED_PRODUCTS = [
+  {
+    _id: "1",
+    name: "Kebab Mini, Donut Glazzy, Omusoba",
+    category: "Food & Snack",
+    description: "Camilan lezat untuk menemani kopi Anda.",
+    imageUrl: "https://cdn.sanity.io/images/md2vx92r/production/aa2e9c0e6700df6c76da741db49cc808d8a14d41-1402x1122.jpg",
+    variants: [{ size: "Regular", price: 15000 }]
+  },
+  {
+    _id: "2",
+    name: "Mapag Tea",
+    category: "Based Tea",
+    description: "Bubuk teh Thailand dicampur gurihnya susu segar",
+    imageUrl: "https://cdn.sanity.io/images/md2vx92r/production/ba332dc4d94f0eac452fe348383921c842b48763-445x506.webp",
+    variants: [
+      { size: "1000ml", price: 75000 },
+      { size: "500ml", price: 40000 },
+      { size: "250ml", price: 20000 }
+    ]
+  },
+  {
+    _id: "3",
+    name: "Mahar (Matcha Harmonis)",
+    category: "Calon Manten",
+    description: "Teh hijau dicampur asam segar susu fermentasi bikin merem melek, cocok diminum siang hari",
+    imageUrl: "https://cdn.sanity.io/images/md2vx92r/production/ffa2e6b74de3cd279e6e7d1b17a98abd64acc3b1-473x586.webp",
+    variants: [{ size: "Cup", price: 17000 }]
+  },
+  {
+    _id: "4",
+    name: "Teh K.U.A (Thai Tea Creamy)",
+    category: "Calon Manten",
+    description: "Creamy nya teh khas thailand ini bikin kamu bahagia kaya mau dilamar pacar",
+    imageUrl: "https://cdn.sanity.io/images/md2vx92r/production/abcd4932d89fda73defa6fea024eff0698f17dbd-1254x1254.jpg",
+    variants: [{ size: "Cup", price: 17000 }]
+  },
+  {
+    _id: "5",
+    name: "EXTRA SHOOT Double Espresso 60ml",
+    category: "Signature Coffee (Based Coffee)",
+    description: "Double Espresso 60 ml",
+    imageUrl: "https://cdn.sanity.io/images/md2vx92r/production/30ff94a8756cc7f03a0bd46f7a28db708d1bd2fd-1082x1453.jpg",
+    variants: [{ size: "60ml", price: 6500 }]
+  },
+  {
+    _id: "6",
+    name: "Moka Win (Coklat + Espresso)",
+    category: "Calon Manten",
+    description: "Manisnya coklat bersatu dgn espresso bikin mood booster buat hari mu",
+    imageUrl: "https://cdn.sanity.io/images/md2vx92r/production/d3be0ac98c0445735c5a7f3e3233f2f4311bb831-470x587.webp",
+    variants: [{ size: "Cup", price: 18000 }]
+  },
+  {
+    _id: "7",
+    name: "Kopi Samawa",
+    category: "Signature Coffee (Based Coffee)",
+    description: "Paduan dari Biji Kopi Asli dan Creamer disempurnakan dengan Susu Segar Membuat Mood jadi Maksimal",
+    imageUrl: "https://cdn.sanity.io/images/md2vx92r/production/464ce6adb797e312ef76b0e5f2a2cad5d46a862f-460x559.webp",
+    variants: [
+      { size: "1000ml", price: 85000 },
+      { size: "500ml", price: 45000 },
+      { size: "250ml", price: 20000 }
+    ]
+  },
+  {
+    _id: "8",
+    name: "Choco Ijab Qabul",
+    category: "Based Chocolate",
+    description: "Aroma dan Rasa Coklatnya yang Kental, Menyenangkan Di Setiap Tegukannya",
+    imageUrl: "https://cdn.sanity.io/images/md2vx92r/production/c8cd147c511986b13ddc93a7e9a1182ffc8095dd-455x562.jpg",
+    variants: [
+      { size: "1000ml", price: 85000 },
+      { size: "500ml", price: 45000 },
+      { size: "250ml", price: 20000 }
+    ]
+  },
+  {
+    _id: "9",
+    name: "Kopi Kado",
+    category: "Signature Coffee (Based Coffee)",
+    description: "Segarnya Buah Alpukat berpadu dengan Pure Espresso dan semakin creamy krn siraman Fresh Milk",
+    imageUrl: "https://cdn.sanity.io/images/md2vx92r/production/f4cd739b97ff141fa32ef6e6ffc51d08efa70297-468x596.webp",
+    variants: [
+      { size: "1000ml", price: 85000 },
+      { size: "500ml", price: 45000 },
+      { size: "250ml", price: 20000 }
+    ]
+  }
+];
+
+export default function HomeClient({ categories: propCategories, products: propProducts }: any) {
+  const categories = HARDCODED_CATEGORIES;
+  const products = HARDCODED_PRODUCTS;
+
   const [activeCategory, setActiveCategory] = useState('All');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
