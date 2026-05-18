@@ -20,6 +20,7 @@ export interface SanityProduct {
     size: string;
     price: number;
   }[];
+  badge?: string;
 }
 
 const HARDCODED_CATEGORIES = [
@@ -57,7 +58,8 @@ const HARDCODED_PRODUCTS = [
     category: "Calon Manten",
     description: "Teh hijau dicampur asam segar susu fermentasi bikin merem melek, cocok diminum siang hari",
     imageUrl: "https://cdn.sanity.io/images/md2vx92r/production/ffa2e6b74de3cd279e6e7d1b17a98abd64acc3b1-473x586.webp",
-    variants: [{ size: "Cup", price: 17000 }]
+    variants: [{ size: "Cup", price: 17000 }],
+    badge: "Recommended"
   },
   {
     _id: "4",
@@ -93,7 +95,8 @@ const HARDCODED_PRODUCTS = [
       { size: "1000ml", price: 85000 },
       { size: "500ml", price: 45000 },
       { size: "250ml", price: 20000 }
-    ]
+    ],
+    badge: "Best Seller"
   },
   {
     _id: "8",
@@ -518,6 +521,20 @@ export default function HomeClient({ categories: propCategories, products: propP
               {cat}
             </button>
           ))}
+          <a 
+            href="#" 
+            className="px-6 py-2 text-sm tracking-wider uppercase border border-[#c59d5f] text-[#c59d5f] hover:bg-[#c59d5f] hover:text-black transition-all flex items-center gap-2 md:ml-auto"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Fitur ini memerlukan file PDF menu Anda"
+            onClick={(e) => {
+              e.preventDefault();
+              alert('Fitur ini siap digunakan! Anda hanya perlu memberikan file PDF menu Anda kepada saya untuk dipasangkan.');
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-down"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><polyline points="9 15 12 18 15 15"/></svg>
+            Download Menu
+          </a>
         </div>
 
         {/* Product Grid */}
@@ -540,6 +557,11 @@ export default function HomeClient({ categories: propCategories, products: propP
                 onClick={() => handleOpenProduct(product)}
               >
                 <div className="relative w-full aspect-[4/5] bg-[#1a1a1a] overflow-hidden mb-4 rounded-sm">
+                  {product.badge && (
+                    <div className="absolute top-2 left-2 bg-[#c59d5f] text-black text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider rounded-sm z-10">
+                      {product.badge}
+                    </div>
+                  )}
                   {product.imageUrl ? (
                     <Image 
                       src={product.imageUrl} 
