@@ -597,6 +597,18 @@ export default function HomeClient({ categories: propCategories, products: propP
                      IG
                   </a>
                </div>
+               <div className="mt-6 w-full h-48 rounded-sm overflow-hidden border border-[#c59d5f]/20">
+                  <iframe 
+                     width="100%" 
+                     height="100%" 
+                     frameBorder="0" 
+                     scrolling="no" 
+                     marginHeight={0} 
+                     marginWidth={0} 
+                     src="https://www.openstreetmap.org/export/embed.html?bbox=106.66%2C-6.19%2C106.68%2C-6.17&amp;layer=mapnik&amp;marker=-6.18%2C106.67"
+                  >
+                  </iframe>
+               </div>
             </div>
          </motion.div>
       </footer>
