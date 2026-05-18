@@ -180,6 +180,7 @@ export default function HomeClient({ categories: propCategories, products: propP
   const [customerWa, setCustomerWa] = useState('');
   const [userDistance, setUserDistance] = useState<number | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const [productNotes, setProductNotes] = useState('');
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
@@ -218,6 +219,7 @@ export default function HomeClient({ categories: propCategories, products: propP
 
   const handleOpenProduct = (product: SanityProduct) => {
     setSelectedProduct(product);
+    setProductNotes(''); // Reset notes saat buka produk baru
     if (product.variants && product.variants.length > 0) {
       setSelectedSize(product.variants[0].size);
     }
@@ -238,8 +240,9 @@ export default function HomeClient({ categories: propCategories, products: propP
         prices: selectedProduct.variants
       };
 
-      cart.addItem(storeProduct as any, selectedSize as any, price);
+      cart.addItem(storeProduct as any, selectedSize as any, price, productNotes);
       setSelectedProduct(null);
+      setProductNotes(''); // Reset notes
       // setIsCartOpen(true); // Dimatikan agar tidak langsung membuka laci keranjang
     }
   };
@@ -267,7 +270,18 @@ export default function HomeClient({ categories: propCategories, products: propP
     if (error) {
       alert('Gagal membuat pesanan: ' + error.message);
     } else {
-      alert('Pesanan berhasil dibuat!');
+      // Generate WhatsApp message
+      const message = `Halo Kopi Manten, saya ingin memesan:\n\n` +
+        cart.items.map(item => `- ${item.product.name} (${item.size}) x${item.quantity}${item.notes ? ` [Catatan: ${item.notes}]` : ''}`).join('\n') +
+        `\n\nTotal: Rp ${(cart.getTotalPrice() / 1000).toFixed(0)}.000` +
+        `\n\nNama: ${customerName}` +
+        `\nWA: ${customerWa}`;
+      
+      const encodedMessage = encodeURIComponent(message);
+      window.open(`https://wa.me/628118115981?text=${encodedMessage}`, '_blank');
+
+      alert('Pesanan berhasil dibuat! Silakan lanjutkan chat WhatsApp yang terbuka untuk konfirmasi.');
+      
       cart.clearCart();
       setCustomerName('');
       setCustomerWa('');
@@ -654,6 +668,9 @@ export default function HomeClient({ categories: propCategories, products: propP
                         <h4 className="font-serif text-[#c59d5f] text-lg">{item.product.name}</h4>
                         <p className="text-xs text-white/50 mb-1">{item.size}</p>
                         <p className="text-white tracking-wider">Rp {(item.price / 1000).toFixed(0)}.000</p>
+                        {item.notes && (
+                          <p className="text-xs text-[#c59d5f]/70 mt-1 italic">Note: {item.notes}</p>
+                        )}
                       </div>
                       <div className="flex flex-col items-end gap-3">
                          <button onClick={() => cart.removeItem(item.id)} className="text-white/30 hover:text-red-400">
@@ -779,6 +796,15 @@ export default function HomeClient({ categories: propCategories, products: propP
                          </label>
                        ))}
                     </div>
+
+                    <h3 className="tracking-widest text-sm mb-2">CATATAN (OPSIONAL)</h3>
+                    <input 
+                      type="text" 
+                      placeholder="Misal: Less sugar, Susu ganti oatmilk, dll." 
+                      className="w-full bg-[#1a1a1a] border border-white/10 p-3 text-sm focus:border-[#c59d5f] outline-none text-white rounded-sm mb-6"
+                      value={productNotes}
+                      onChange={(e) => setProductNotes(e.target.value)}
+                    />
 
                     <button 
                       onClick={handleAddToCart}
