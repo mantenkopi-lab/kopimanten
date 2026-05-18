@@ -6,6 +6,8 @@ import { ShoppingBag, X, Phone, MapPin, Coffee, Leaf, Users, ShieldCheck } from 
 import Image from 'next/image';
 import { useCartStore } from '../store/cartStore';
 import { supabase } from '@/lib/supabase';
+import { auth, googleProvider } from '@/lib/firebase';
+import { signInWithPopup, onAuthStateChanged, User } from 'firebase/auth';
 
 // Types based on what we map from Sanity
 export interface SanityProduct {
@@ -126,6 +128,7 @@ export default function HomeClient({ categories: propCategories, products: propP
   const [activeCategory, setActiveCategory] = useState('All');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -134,6 +137,21 @@ export default function HomeClient({ categories: propCategories, products: propP
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  };
 
 
 
@@ -244,6 +262,20 @@ export default function HomeClient({ categories: propCategories, products: propP
                 </span>
               )}
             </button>
+            
+            {user ? (
+              <span className="text-white/80 text-sm tracking-widest hidden sm:block">
+                Hi, {user.displayName?.split(' ')[0] || 'User'}
+              </span>
+            ) : (
+              <button 
+                onClick={handleLogin}
+                className="hidden sm:block px-6 py-2 border border-[#c59d5f] text-[#c59d5f] hover:bg-[#c59d5f] hover:text-black transition-colors text-sm tracking-widest"
+              >
+                LOGIN
+              </button>
+            )}
+
             <button className="hidden sm:block px-6 py-2 border border-[#c59d5f] text-[#c59d5f] hover:bg-[#c59d5f] hover:text-black transition-colors text-sm tracking-widest">
               ORDER NOW
             </button>
