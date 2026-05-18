@@ -525,11 +525,19 @@ export default function HomeClient({ categories: propCategories, products: propP
                   <MapPin className="w-5 h-5 text-[#c59d5f]" />
                   <h3 className="tracking-widest">VISIT OUR PLACE</h3>
                </div>
-               <p className="text-sm text-white/60 leading-relaxed mb-6">
+               <p className="text-sm text-white/60 leading-relaxed mb-4">
                   Banjar Wijaya Cluster Grasia B 41 No.28<br/>
                   RT.001/RW.010, Cipete, Kec. Pinang,<br/>
                   Kota Tangerang, Banten 15142
                </p>
+               <a 
+                  href="https://www.google.com/maps/search/?api=1&query=Banjar+Wijaya+Cluster+Grasia+B+41+No.28+Cipete+Kec.+Pinang+Kota+Tangerang+Banten+15142" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-[#c59d5f] hover:text-[#e0b472] text-sm tracking-widest underline block mb-6"
+               >
+                  Buka di Google Maps
+               </a>
                <div className="flex items-center gap-3 mb-8">
                   <Phone className="w-5 h-5 text-[#c59d5f]" />
                   <a href="tel:08118115981" className="text-xl tracking-wider hover:text-[#c59d5f] transition-colors">
