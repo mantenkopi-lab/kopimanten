@@ -121,6 +121,24 @@ const HARDCODED_PRODUCTS = [
   }
 ];
 
+function deg2rad(deg: number) {
+  return deg * (Math.PI/180)
+}
+
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2-lat1);
+  const dLon = deg2rad(lon2-lon1); 
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ; 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  const d = R * c; // Distance in km
+  return d;
+}
+
 export default function HomeClient({ categories: propCategories, products: propProducts }: any) {
   const categories = HARDCODED_CATEGORIES;
   const products = HARDCODED_PRODUCTS;
@@ -160,6 +178,36 @@ export default function HomeClient({ categories: propCategories, products: propP
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState('');
   const [customerWa, setCustomerWa] = useState('');
+  const [userDistance, setUserDistance] = useState<number | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation tidak didukung oleh browser Anda.');
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userLat = position.coords.latitude;
+        const userLon = position.coords.longitude;
+        
+        // Outlet coords (Banjar Wijaya)
+        const outletLat = -6.18;
+        const outletLon = 106.67;
+        
+        const dist = getDistance(outletLat, outletLon, userLat, userLon);
+        setUserDistance(dist);
+        setIsLocating(false);
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+        alert('Gagal mengambil lokasi. Pastikan Anda memberi izin lokasi.');
+        setIsLocating(false);
+      }
+    );
+  };
 
 
   const cart = useCartStore();
@@ -623,6 +671,19 @@ export default function HomeClient({ categories: propCategories, products: propP
                       value={customerWa}
                       onChange={(e) => setCustomerWa(e.target.value)}
                     />
+                    <button
+                      onClick={handleGetLocation}
+                      className="w-full bg-[#1a1a1a] border border-[#c59d5f]/50 text-[#c59d5f] p-3 text-sm tracking-widest hover:bg-[#c59d5f] hover:text-black transition-colors rounded-sm flex items-center justify-center gap-2"
+                      disabled={isLocating}
+                    >
+                      <MapPin className="w-4 h-4" />
+                      {isLocating ? 'Mengambil Lokasi...' : 'Hitung Jarak Delivery'}
+                    </button>
+                    {userDistance !== null && (
+                      <p className="text-xs text-white/70 text-center mt-2">
+                        Jarak Anda: <span className="text-[#c59d5f] font-bold">{userDistance.toFixed(1)} km</span> dari outlet.
+                      </p>
+                    )}
                   </div>
                   <div className="flex justify-between mb-6">
                     <span className="text-white/70 tracking-widest">SUBTOTAL</span>
