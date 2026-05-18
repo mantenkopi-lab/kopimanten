@@ -211,7 +211,8 @@ export default function HomeClient({ categories: propCategories, products: propP
           total_price: cart.getTotalPrice(),
           customer_name: customerName,
           customer_wa: customerWa,
-          status: 'pending'
+          status: 'pending',
+          user_id: user?.uid || null
         }
       ]);
       
