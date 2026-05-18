@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Kopi Manten",
     description: "Exclusive. Premium. Authentic.",
-    images: ["/assets/Logo Kopi Manten.JPG"],
+    images: ["https://kopimanten-3ki.pages.dev/assets/Logo%20Kopi%20Manten.JPG"],
   },
 };
 
