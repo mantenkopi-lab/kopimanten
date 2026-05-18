@@ -192,7 +192,7 @@ export default function HomeClient({ categories: propCategories, products: propP
 
       cart.addItem(storeProduct as any, selectedSize as any, price);
       setSelectedProduct(null);
-      setIsCartOpen(true);
+      // setIsCartOpen(true); // Dimatikan agar tidak langsung membuka laci keranjang
     }
   };
 
