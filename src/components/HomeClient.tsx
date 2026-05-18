@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, X, Phone, MapPin, Coffee, Leaf, Users, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, X, Phone, MapPin, Coffee, Leaf, Users, ShieldCheck, Share2 } from 'lucide-react';
 import Image from 'next/image';
 import { useCartStore } from '../store/cartStore';
 import { supabase } from '@/lib/supabase';
@@ -182,6 +182,21 @@ export default function HomeClient({ categories: propCategories, products: propP
   const [isLocating, setIsLocating] = useState(false);
   const [productNotes, setProductNotes] = useState('');
 
+  const checkIsOpen = () => {
+    const now = new Date();
+    const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
+    const wibTime = new Date(utcTime + (3600000 * 7));
+    
+    const day = wibTime.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    const hours = wibTime.getHours();
+    
+    if (day === 0) return false; // Tutup hari Minggu
+    if (hours >= 8 && hours < 20) return true; // Buka jam 08:00 - 20:00
+    return false;
+  };
+
+  const isOpen = checkIsOpen();
+
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
       alert('Geolocation tidak didukung oleh browser Anda.');
@@ -216,6 +231,15 @@ export default function HomeClient({ categories: propCategories, products: propP
   const filteredMenu = activeCategory === 'All' 
     ? products 
     : products.filter(item => item.category === activeCategory);
+
+  const handleShareProduct = (product: SanityProduct) => {
+    const message = `Eh, cobain ${product.name} di Kopi Manten deh! Rasanya enak banget.\n\n` +
+      `"${product.description}"\n\n` +
+      `Yuk pesan di sini: https://kopimanten.id`;
+    
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+  };
 
   const handleOpenProduct = (product: SanityProduct) => {
     setSelectedProduct(product);
@@ -300,7 +324,12 @@ export default function HomeClient({ categories: propCategories, products: propP
             <Image src="/assets/Logo Kopi Manten.JPG" alt="Kopi Manten Logo" width={50} height={50} className="rounded-full object-cover" />
             <div className="hidden sm:block">
               <h1 className="font-serif text-2xl tracking-widest text-white italic">Kopimanten</h1>
-              <p className="text-[10px] tracking-[0.2em] text-[#c59d5f] uppercase mt-1">Coffee & Couple</p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-[10px] tracking-[0.2em] text-[#c59d5f] uppercase">Coffee & Couple</p>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-sm font-bold ${isOpen ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+                  {isOpen ? 'BUKA' : 'TUTUP'}
+                </span>
+              </div>
             </div>
           </div>
           
@@ -530,7 +559,19 @@ export default function HomeClient({ categories: propCategories, products: propP
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-[#c59d5f] font-serif text-xl mb-1 uppercase tracking-wider">{product.name}</h3>
+                  <div className="flex justify-between items-start mb-1">
+                    <h3 className="text-[#c59d5f] font-serif text-xl uppercase tracking-wider">{product.name}</h3>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation(); // Stop opening the modal
+                        handleShareProduct(product);
+                      }}
+                      className="text-white/50 hover:text-[#c59d5f] transition-colors p-1"
+                      title="Bagikan ke WhatsApp"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                  </div>
                   <p className="text-white/60 text-sm mb-2">{product.description}</p>
                   <p className="text-white/40 text-xs">
                     {product.variants?.map(p => p.size).join(' / ')}
@@ -720,9 +761,14 @@ export default function HomeClient({ categories: propCategories, products: propP
                   </div>
                   <button 
                     onClick={handleCheckout}
-                    className="w-full bg-[#c59d5f] hover:bg-[#e0b472] text-black font-bold tracking-widest py-4 transition-colors"
+                    className={`w-full font-bold tracking-widest py-4 transition-colors ${
+                      isOpen 
+                        ? 'bg-[#c59d5f] hover:bg-[#e0b472] text-black' 
+                        : 'bg-white/10 text-white/30 cursor-not-allowed'
+                    }`}
+                    disabled={!isOpen}
                   >
-                    CHECKOUT
+                    {isOpen ? 'CHECKOUT' : 'TOKO TUTUP'}
                   </button>
                 </div>
               )}
